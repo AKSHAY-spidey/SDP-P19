@@ -1,0 +1,159 @@
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+
+const EventManagement = () => {
+    const [events, setEvents] = useState([]);
+    const [form, setForm] = useState({
+        title: '',
+        description: '',
+        date: '',
+        id: null  // Track ID for editing purposes
+    });
+    const [isEditing, setIsEditing] = useState(false);
+
+    // Fetch all events when the component mounts
+    useEffect(() => {
+        fetchEvents();
+    }, []);
+
+    // Fetch all events
+    const fetchEvents = async () => {
+        try {
+            const response = await axios.get('/api/events');
+            setEvents(response.data);
+        } catch (error) {
+            console.error('Error fetching events:', error);
+        }
+    };
+
+    // Handle form input changes
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setForm({ ...form, [name]: value });
+    };
+
+    // Create a new event
+    const createEvent = async () => {
+        try {
+            await axios.post('/api/events', form);
+            setForm({ title: '', description: '', date: '', id: null });
+            fetchEvents();
+        } catch (error) {
+            console.error('Error creating event:', error);
+        }
+    };
+
+    // Update an existing event
+    const updateEvent = async () => {
+        try {
+            await axios.put(`/api/events/${form.id}`, form);
+            setForm({ title: '', description: '', date: '', id: null });
+            setIsEditing(false);
+            fetchEvents();
+        } catch (error) {
+            console.error('Error updating event:', error);
+        }
+    };
+
+    // Delete an event
+    const deleteEvent = async (id) => {
+        try {
+            await axios.delete(`/api/events/${id}`);
+            fetchEvents();
+        } catch (error) {
+            console.error('Error deleting event:', error);
+        }
+    };
+
+    // Submit form for create or update
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        isEditing ? updateEvent() : createEvent();
+    };
+
+    // Edit an event by setting form data and toggling edit mode
+    const handleEdit = (event) => {
+        setForm({
+            title: event.title,
+            description: event.description,
+            date: event.date,
+            id: event._id
+        });
+        setIsEditing(true);
+    };
+
+    return (
+        <div className="event-management">
+            <h2>{isEditing ? 'Edit Event' : 'Schedule Event'}</h2>
+            <form onSubmit={handleSubmit}>
+                <div>
+                    <label>Title:</label>
+                    <input
+                        type="text"
+                        name="title"
+                        value={form.title}
+                        onChange={handleChange}
+                        required
+                    />
+                </div>
+                <div>
+                    <label>Description:</label>
+                    <textarea
+                        name="description"
+                        value={form.description}
+                        onChange={handleChange}
+                        required
+                    />
+                </div>
+                <div>
+                    <label>Date:</label>
+                    <input
+                        type="datetime-local"
+                        name="date"
+                        value={form.date}
+                        onChange={handleChange}
+                        required
+                    />
+                </div>
+                <button type="submit">
+                    {isEditing ? 'Update Event' : 'Create Event'}
+                </button>
+                {isEditing && (
+                    <button type="button" onClick={() => {
+                        setIsEditing(false);
+                        setForm({ title: '', description: '', date: '', id: null });
+                    }}>
+                        Cancel Edit
+                    </button>
+                )}
+            </form>
+
+            <h2>Scheduled Events</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Description</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {events.map((event) => (
+                        <tr key={event._id}>
+                            <td>{event.title}</td>
+                            <td>{event.description}</td>
+                            <td>{new Date(event.date).toLocaleString()}</td>
+                            <td>
+                                <button onClick={() => handleEdit(event)}>Edit</button>
+                                <button onClick={() => deleteEvent(event._id)}>Delete</button>
+                            </td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        </div>
+    );
+};
+
+export default EventManagement;
