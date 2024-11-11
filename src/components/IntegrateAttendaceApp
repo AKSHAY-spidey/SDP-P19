@@ -1,0 +1,15 @@
+import React from 'react';
+import Attendance from './components/Attendance';
+
+function App() {
+    const eventId = '12345'; // Replace this with the actual event ID or pass dynamically
+
+    return (
+        <div className="App">
+            <h1>Event Attendance</h1>
+            <Attendance eventId={eventId} />
+        </div>
+    );
+}
+
+export default App;
