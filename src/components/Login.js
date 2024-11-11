@@ -8,24 +8,29 @@ const Login = ({ onLogin }) => {
 
     const handleSubmit = async (event) => {
         event.preventDefault();
+        setError(''); // Clear any previous errors
+
         try {
             const response = await axios.post('http://localhost:5000/login', {
-                username,
-                password
+                username: username,
+                password: password
             });
+
             if (response.status === 200) {
-                onLogin(username);  // Call onLogin function passed from App
+                onLogin(username); // Call the onLogin function to handle successful login
+            } else {
+                setError('Invalid username or password');
             }
         } catch (error) {
-            setError('Invalid username or password');
+            setError('Failed to connect to server');
         }
     };
 
     return (
         <div className="login-container">
-            <h2>Login to Virtual Event Management</h2>
-            <form onSubmit={handleSubmit}>
-                <div>
+            <h2>Login</h2>
+            <form onSubmit={handleSubmit} className="login-form">
+                <div className="form-group">
                     <label>Username:</label>
                     <input
                         type="text"
@@ -34,9 +39,20 @@ const Login = ({ onLogin }) => {
                         required
                     />
                 </div>
-                <div>
+                <div className="form-group">
                     <label>Password:</label>
                     <input
                         type="password"
                         value={password}
-                        onChange={(e) => setPassword(e.target.value
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                    />
+                </div>
+                <button type="submit">Login</button>
+                {error && <p className="error-message">{error}</p>}
+            </form>
+        </div>
+    );
+};
+
+export default Login;
